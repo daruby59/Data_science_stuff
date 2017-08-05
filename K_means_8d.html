@@ -1,0 +1,444 @@
+<html> 
+  <head> 
+    <title>K-means (the Iris example)</title>
+    <script type="text/javascript"> 
+                var k=1;
+                var xr = 50;
+                var yr = 50;
+                var m = 0;
+                var count_a = 0;
+                var count_b = 0;
+                var minimum = 1000000;
+                var min_last = 0;
+                var total_distance = 0.0;
+                //
+                var centroid_color_rr = [  0,255,255,  0,  0];
+				var centroid_color_gg = [  0,  0,  0,255,128];
+				var centroid_color_bb = [255,  0,255,255,128];
+				//
+				var sums = [[0.0,0.0,0.0,0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0,0.0,0.0,0.0],[0.0,0.0,0.0,0.0,0.0,0.0,0.0]];
+				//
+				var centroids = [[1.0,3.0,5.0,0.0,0.0,0.0,0.0],[4.0,1.0,6.0,0.0,0.0,0.0,0.0],[2.0,3.0,1.0,0.0,0.0,0.0,0.0],[1.0,2.0,4.0,0.0,0.0,0.0,0.0]];
+				var distance = [0.0,0.0,0.0,0.0,0.0,0.0,0.0];
+				var cnt = [0.0,0.0,0.0,0.0,0.0,0.0,0.0];
+                //
+                // data
+                //
+                var sepal_length = [5.1,4.9,4.7,4.6,5,5.4,4.6,5,4.4,4.9,5.4,4.8,4.8,4.3,5.8,5.7,5.4,5.1,5.7,5.1,5.4,5.1,4.6,5.1,4.8,5,5,5.2,5.2,4.7,4.8,5.4,5.2,5.5,4.9,5,5.5,4.9,4.4,5.1,5,4.5,4.4,5,5.1,4.8,5.1,4.6,5.3,5,7,6.4,6.9,5.5,6.5,5.7,6.3,4.9,6.6,5.2,5,5.9,6,6.1,5.6,6.7,5.6,5.8,6.2,5.6,5.9,6.1,6.3,6.1,6.4,6.6,6.8,6.7,6,5.7,5.5,5.5,5.8,6,5.4,6,6.7,6.3,5.6,5.5,5.5,6.1,5.8,5,5.6,5.7,5.7,6.2,5.1,5.7,6.3,5.8,7.1,6.3,6.5,7.6,4.9,7.3,6.7,7.2,6.5,6.4,6.8,5.7,5.8,6.4,6.5,7.7,7.7,6,6.9,5.6,7.7,6.3,6.7,7.2,6.2,6.1,6.4,7.2,7.4,7.9,6.4,6.3,6.1,7.7,6.3,6.4,6,6.9,6.7,6.9,5.8,6.8,6.7,6.7,6.3,6.5,6.2,5.9];
+                var sepal_width = [3.5,3,3.2,3.1,3.6,3.9,3.4,3.4,2.9,3.1,3.7,3.4,3,3,4,4.4,3.9,3.5,3.8,3.8,3.4,3.7,3.6,3.3,3.4,3,3.4,3.5,3.4,3.2,3.1,3.4,4.1,4.2,3.1,3.2,3.5,3.1,3,3.4,3.5,2.3,3.2,3.5,3.8,3,3.8,3.2,3.7,3.3,3.2,3.2,3.1,2.3,2.8,2.8,3.3,2.4,2.9,2.7,2,3,2.2,2.9,2.9,3.1,3,2.7,2.2,2.5,3.2,2.8,2.5,2.8,2.9,3,2.8,3,2.9,2.6,2.4,2.4,2.7,2.7,3,3.4,3.1,2.3,3,2.5,2.6,3,2.6,2.3,2.7,3,2.9,2.9,2.5,2.8,3.3,2.7,3,2.9,3,3,2.5,2.9,2.5,3.6,3.2,2.7,3,2.5,2.8,3.2,3,3.8,2.6,2.2,3.2,2.8,2.8,2.7,3.3,3.2,2.8,3,2.8,3,2.8,3.8,2.8,2.8,2.6,3,3.4,3.1,3,3.1,3.1,3.1,2.7,3.2,3.3,3,2.5,3,3.4,3];
+                var petal_length = [1.4,1.4,1.3,1.5,1.4,1.7,1.4,1.5,1.4,1.5,1.5,1.6,1.4,1.1,1.2,1.5,1.3,1.4,1.7,1.5,1.7,1.5,1,1.7,1.9,1.6,1.6,1.5,1.4,1.6,1.6,1.5,1.5,1.4,1.5,1.2,1.3,1.5,1.3,1.5,1.3,1.3,1.3,1.6,1.9,1.4,1.6,1.4,1.5,1.4,4.7,4.5,4.9,4,4.6,4.5,4.7,3.3,4.6,3.9,3.5,4.2,4,4.7,3.6,4.4,4.5,4.1,4.5,3.9,4.8,4,4.9,4.7,4.3,4.4,4.8,5,4.5,3.5,3.8,3.7,3.9,5.1,4.5,4.5,4.7,4.4,4.1,4,4.4,4.6,4,3.3,4.2,4.2,4.2,4.3,3,4.1,6,5.1,5.9,5.6,5.8,6.6,4.5,6.3,5.8,6.1,5.1,5.3,5.5,5,5.1,5.3,5.5,6.7,6.9,5,5.7,4.9,6.7,4.9,5.7,6,4.8,4.9,5.6,5.8,6.1,6.4,5.6,5.1,5.6,6.1,5.6,5.5,4.8,5.4,5.6,5.1,5.1,5.9,5.7,5.2,5,5.2,5.4,5.1];
+                var petal_width = [0.2,0.2,0.2,0.2,0.2,0.4,0.3,0.2,0.2,0.1,0.2,0.2,0.1,0.1,0.2,0.4,0.4,0.3,0.3,0.3,0.2,0.4,0.2,0.5,0.2,0.2,0.4,0.2,0.2,0.2,0.2,0.4,0.1,0.2,0.1,0.2,0.2,0.1,0.2,0.2,0.3,0.3,0.2,0.6,0.4,0.3,0.2,0.2,0.2,0.2,1.4,1.5,1.5,1.3,1.5,1.3,1.6,1,1.3,1.4,1,1.5,1,1.4,1.3,1.4,1.5,1,1.5,1.1,1.8,1.3,1.5,1.2,1.3,1.4,1.4,1.7,1.5,1,1.1,1,1.2,1.6,1.5,1.6,1.5,1.3,1.3,1.3,1.2,1.4,1.2,1,1.3,1.2,1.3,1.3,1.1,1.3,2.5,1.9,2.1,1.8,2.2,2.1,1.7,1.8,1.8,2.5,2,1.9,2.1,2,2.4,2.3,1.8,2.2,2.3,1.5,2.3,2,2,1.8,2.1,1.8,1.8,1.8,2.1,1.6,1.9,2,2.2,1.5,1.4,2.3,2.4,1.8,1.8,2.1,2.4,2.3,1.9,2.3,2.5,2.3,1.9,2,2.3,1.8];
+                var iris_type = ["Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-setosa","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-versicolor","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica","Iris-virginica"];
+                //
+                // max values = 7.9, 4.4, 6.9, 2.5
+                //
+                var sample_s_length = 6.1;
+                var sample_s_width = 3.3;
+                var sample_p_lentgh = 2.0;
+                var sample_p_width = 0.25;
+                //
+                // var code = [0.2,0.2,0.2,0.2,0.2,0.4,0.3,0.2,0.2,0.1,0.2,0.2,0.1,0.1,0.2,0.4,0.4,0.3,0.3,0.3,0.2,0.4,0.2,0.5,0.2,0.2,0.4,0.2,0.2,0.2,0.2,0.4,0.1,0.2,0.1,0.2,0.2,0.1,0.2,0.2,0.3,0.3,0.2,0.6,0.4,0.3,0.2,0.2,0.2,0.2,1.4,1.5,1.5,1.3,1.5,1.3,1.6,1,1.3,1.4,1,1.5,1,1.4,1.3,1.4,1.5,1,1.5,1.1,1.8,1.3,1.5,1.2,1.3,1.4,1.4,1.7,1.5,1,1.1,1,1.2,1.6,1.5,1.6,1.5,1.3,1.3,1.3,1.2,1.4,1.2,1,1.3,1.2,1.3,1.3,1.1,1.3,2.5,1.9,2.1,1.8,2.2,2.1,1.7,1.8,1.8,2.5,2,1.9,2.1,2,2.4,2.3,1.8,2.2,2.3,1.5,2.3,2,2,1.8,2.1,1.8,1.8,1.8,2.1,1.6,1.9,2,2.2,1.5,1.4,2.3,2.4,1.8,1.8,2.1,2.4,2.3,1.9,2.3,2.5,2.3,1.9,2,2.3,1.8];
+                var label1 = ["Iris-setosa","Iris-versicolor","Iris-virginica","",""];
+                var label2 = ["Iris-versicolor","Iris-virginica","Iris-setosa","",""];
+                var label3 = ["Iris-virginica","Iris-setosa","Iris-versicolor","",""];
+                var label4 = ["Iris-setosa","Iris-virginica","Iris-versicolor","",""];
+                //
+                var x_label = ["sepal length (cm)","sepal width (cm)" ,"petal length (cm)","petal width (cm)","petal length (cm)","petal width (cm)"];
+                var y_label = ["sepal width (cm)" ,"petal length (cm)","petal width (cm)","sepal length (cm)","sepal width (cm)", "sepal width (cm)"];
+                 //
+                var count = 150;
+                var centroid_n = 3;
+                var attributes_n = 4;
+                var index = 0;
+                var code = [150];
+                var cd = [[150],[150],[150],[150,]];
+                //
+                var xx = [150];
+                var yy = [150];
+                var zz = [150];
+                var ww = [150];
+//
+function doit1() {
+  for (j=0;j<count;j++) {
+    cd[0][j] = sepal_length[j];
+    cd[1][j] = sepal_width[j];
+    cd[2][j] = petal_length[j];
+    cd[3][j] = petal_width[j];
+  }
+  //
+  for (j=0;j<count;j++) {
+    xx[j] = sepal_length[j];
+    yy[j] = sepal_width[j];
+    zz[j] = petal_length[j];
+    ww[j] = petal_width[j];
+  }
+  //
+  index = index + 1;
+  if (index > 5) {
+    index = 1;
+  }
+  //
+  if (index == 1) {
+    for (j=0;j<count;j++) {
+      xx[j] = sepal_width[j];
+      yy[j] = petal_length[j];
+      zz[j] = petal_width[j];
+      ww[j] = sepal_length[j];
+    }
+  }
+  if (index == 2) {
+    for (j=0;j<count;j++) {
+      xx[j] = petal_length[j];
+      yy[j] = petal_width[j];
+      zz[j] = sepal_length[j];
+      ww[j] = sepal_width[j];
+    }
+  }
+  if (index == 3) {
+    for (j=0;j<count;j++) {
+      xx[j] = petal_width[j];
+      yy[j] = sepal_length[j];
+      zz[j] = sepal_width[j];
+      ww[j] = petal_length[j];
+    }
+  }
+  if (index == 4) {
+    for (j=0;j<count;j++) {
+      xx[j] = petal_length[j];
+      yy[j] = sepal_width[j];
+      zz[j] = sepal_length[j];
+      ww[j] = petal_width[j];
+    }
+  }
+  if (index == 5) {
+    for (j=0;j<count;j++) {
+      xx[j] = petal_width[j];
+      yy[j] = sepal_width[j];
+      zz[j] = sepal_length[j];
+      ww[j] = petal_length[j];
+    }
+  }
+  draw();
+}
+//
+function doSomething() {
+  m = 0;
+  flag = 1;
+    myVar=setInterval(function(){update()},300);
+    function update() {
+    m=m+1;
+      if (m < 20) {
+                draw();
+      }
+      else {
+      
+       // j1window.close();
+      }
+    function myStopFunction() {
+      clearInterval(myVar);
+    }
+  }
+}
+//
+function results() {
+  j1window = window.open('K-means', 'ax', 'height=400, width=500, toolbar=no, scrollbars=yes');
+  //
+  j1window.document.write("<html><head><title>K-Means: Results</title></head>");
+  j1window.document.write("<body>");
+  for (j=0;j<count;j++) {
+        j1window.document.write("<p>Record #: "+j+" Classification: "+label4[code[j]]+" Actual: "+iris_type[j]+"</p>");
+  }
+  j1window.document.write("</body></html>");
+}
+//
+function drawLine(x1,y1,x2,y2) {
+                var canvas = document.getElementById('Kmeans1'); 
+                if (canvas.getContext){ 
+                       var gS2 = canvas.getContext('2d'); 
+                } 
+                gS2.lineWidth=1;
+                gS2.beginPath(); 
+                gS2.moveTo(x1,y1);
+                gS2.lineTo(x2,y2);
+                gS2.closePath;
+                gS2.stroke();
+}
+//
+function drawRect(x1,y1,x2,y2) {
+                var canvas = document.getElementById('Kmeans1'); 
+                if (canvas.getContext){ 
+                        var gS2 = canvas.getContext('2d'); 
+                } 
+                    gS2.beginPath();
+                gS2.moveTo(x1,y1);
+                gS2.lineTo(x1+x2,y1);
+                gS2.lineTo(x1+x2,y1+y2);
+                gS2.lineTo(x1,y1+y2);
+                gS2.closePath();
+                gS2.stroke();
+}
+//
+// round to three decimal places
+//
+function round_it(dnrx,dp) {
+	tempx = Math.round(dnrx*Math.pow(10,dp))/Math.pow(10,dp);
+            return(tempx);
+        }
+		  //
+function round_1(dnr) {
+	temp = Math.round(dnr*1000.0)/1000.0;
+            return(temp);
+        }
+		  //
+          function draw() { 
+                var canvas = document.getElementById('Kmeans1'); 
+                if (canvas.getContext){ 
+                    var gS2 = canvas.getContext('2d'); 
+                } 
+				//
+				// Coordinate system
+				//
+				gS2.fillStyle = "rgb(248,248,248)";
+				gS2.fillRect(0,0,490,400);
+				//
+				gS2.fillStyle = "rgb(240,240,240)";
+				gS2.fillRect(0,0,490,20);
+				//
+				gS2.strokeStyle = "rgb(164,164,164)";
+				gS2.lineWidth=2;
+				drawLine(0,21,490,21);
+				//
+				//  chart
+				// 
+				for (q = 0;q<2; q++) {
+				  gS2.strokeStyle = "rgb(100,150,220)";
+				  drawRect(30+q*230,100,200,200);
+				  var temp = 240-q*16;
+				  c_code = temp.toString();
+				  gS2.fillStyle = "rgb("+c_code+","+c_code+","+c_code+")";
+				  gS2.fillRect(31+q*230,101,198,198);
+				  gS2.strokeStyle = "rgb(255,255,255)";
+				  //
+				  gS2.lineWidth=1;
+				  for (i=0;i<100;i=i+5) {
+				    drawLine(31+q*230,100+i*2,229+q*230,100+i*2);
+				  }
+				  for (i=0;i<100;i=i+5) {
+				    drawLine(30+q*230+i*2,101,30+q*230+i*2,299);
+				  }
+				  //
+				  gS2.fillStyle = "rgb(0,0,128)";
+				  gS2.font = "bold 10px Arial";
+				  for (i=0;i<11;i=i+1) {
+				    width = gS2.measureText(i+"").width;
+				    gS2.fillText(i+"",(35+q*230+i*20)-width,315);
+				  }
+				  //
+				  for (i=0;i<11;i=i+1) {
+				    width = gS2.measureText(i+"").width;
+				    gS2.fillText(i+"",25+q*230-width,305-i*20);
+				  }
+				}
+				//
+                // work starts here...
+				//
+				if (m == 0) {
+				   gS2.fillStyle = "rgb(0,225,0)";
+				   for (i=0;i<count;i++) {
+				      gS2.fillRect(30+cd[0][i]*20-1,300-cd[1][i]*20-1,3,3);
+				   }
+				   //
+				   for (i=0;i<count;i++) {
+				      gS2.fillRect(30+230+xx[i]*20-1,300-yy[i]*20-1,3,3);
+				   }
+				   //
+				   // initialize centroids -- three centroids - four dimensions...
+				   //
+				   for (k=0;k<centroid_n;k++) {
+				     for (l=0;l<attributes_n;l++) {
+				       sums[l][k] = 0.0;
+				     }
+				     //
+				     // 20 = int(count/5) -- think about training sets and test sets.
+				     //
+				     for (i=0;i<(20);i++) {
+				       j = Math.round(Math.random()*(count-1));
+				         for (l=0;l<attributes_n;l++) {
+				           sums[l][k] = sums[l][k] + cd[l][j];
+				         }
+				     }
+				     for (l=0;l<attributes_n;l++) {
+				       centroids[l][k] = sums[l][k]/(20.0);
+				     }
+				  }
+				  //
+				  for (k=0;k<centroid_n;k++) {
+				    gS2.fillStyle = "rgba("+centroid_color_rr[k]+","+centroid_color_gg[k]+","+centroid_color_bb[k]+",0.8)";
+				    gS2.beginPath();
+				    gS2.arc(28+centroids[0][k]*20,298-centroids[1][k]*20,3,0,2.0*Math.PI);
+				    gS2.closePath;
+				    gS2.fill();
+				  }
+				}
+				//
+				if (m > 0) {
+				  //
+				  // first / next iteration...
+				  //
+				  gS2.font = "10px Arial";
+				  gS2.fillStyle = "rgb(128,0,0)";
+				  //
+				  var distance = [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0];
+				  var diff_sq = [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0];
+				  for (i=0;i<count;i++) {
+				    for (k=0;k<centroid_n;k++) {
+				      for (l=0;l<attributes_n;l++) {
+				        diff_sq[l] = Math.pow((cd[l][i] - centroids[l][k]),2);
+				      }  
+				      distance[k] = Math.sqrt(diff_sq[0]+diff_sq[1]+diff_sq[2]+diff_sq[3]);
+				      distance[k] = round_it(distance[k],4);  
+				    }
+				    //
+				    test_min = distance[0];
+				    code[i] = 0;
+				    for (k=1;k<centroid_n;k++) {
+				       if (distance[k] < test_min) {
+				          code[i] = k;
+				          test_min = distance[k];
+				       }
+				     }   
+				  }
+				  //
+				  for (k=0;k<centroid_n;k++) {
+				    for (l=0;l<attributes_n;l++) {
+				      sums[l][k] = 0.0;
+				    }
+				    cnt[k] = 0.0;
+				    for (i=0;i<count;i++) {
+				      if (code[i] == k) {
+				        for (l=0;l<attributes_n;l++) {
+				         sums[l][k] = sums[l][k]+ cd[l][i];
+				        }
+				        cnt[k] = cnt[k] + 1;
+				      }
+				    }
+				    if (cnt[k] == 0) {
+				      cnt[k] = 1;
+				    }
+				    for (l=0;l<attributes_n;l++) {
+				      centroids[l][k] = sums[l][k]/(cnt[k]);
+				    }
+				  } 
+				  //       
+				  for (i=0;i<count;i++) {
+				     if (code[i] == 0) {
+				        gS2.fillStyle = "rgb(128,0,128)";
+				     }
+				     if (code[i] == 1) {
+				        gS2.fillStyle = "rgb(0,128,128)";
+				     }
+				     if (code[i] == 2) {
+				        gS2.fillStyle = "rgb(150,100,255)";
+				     }
+				     gS2.fillRect(30+cd[0][i]*20-1,300-cd[1][i]*20-1,3,3);
+				     gS2.fillRect(260+xx[i]*20-1,300-yy[i]*20-1,3,3);
+				  }
+				  //
+				  total_distance = 0.0;
+				  for (i=0;i< count;i++) {
+				    for (k=0;k<centroid_n;k++) {
+				      for (l=0;l<attributes_n;l++) {
+				        // diff_sq[l] = 0.0;
+					  }
+				      for (l=0;l<attributes_n;l++) {
+				        diff_sq[l] = Math.pow((cd[l][i] - centroids[l][k]),2);
+				      }
+				      distance[k] = Math.sqrt(diff_sq[0]+diff_sq[1]+diff_sq[2]+diff_sq[3]);
+				      total_distance = total_distance + distance[k];
+				     }
+				  }
+				  //
+				  // this needs work
+				  //
+				  if (total_distance < minimum) {
+					  min_last = minimum;
+					  minimum = total_distance;
+				  }
+				  minimum = round_1(minimum);
+				  if ((min_last - minimum < 0.05) && (min_last-minimum > -0.05)) {
+					m = 20;
+				  }
+				}
+				//
+				gS2.font = "bold 12px Arial";
+				gS2.fillStyle = "rgb(128,0,0)";
+				gS2.fillText("Centroids:",40,375);
+				gS2.fillText("Group counts: ",315,345);
+				//
+				for (k=0;k<centroid_n;k++) {
+				  for (l=0;l<attributes_n;l++) {
+				    centroids[l][k] = round_1(centroids[l][k]);
+				  }
+				  gS2.fillStyle = "rgb(0,0,0)";
+				  gS2.fillText(""+cnt[k],350,360+k*15);
+				}
+				//
+				if (m > 0) {
+				  for (k=0;k<centroid_n;k++) {
+				    gS2.fillStyle = "rgb(255,255,255)";
+				    gS2.beginPath();
+				    gS2.arc(28+centroids[0][k]*20,298-centroids[1][k]*20,5,0,2.0*Math.PI);
+				    gS2.closePath;
+				    gS2.fill();
+				    //
+				    gS2.fillStyle = "rgba("+centroid_color_rr[k]+","+centroid_color_gg[k]+","+centroid_color_bb[k]+",0.8)";
+				    gS2.beginPath();
+				    gS2.arc(28+centroids[0][k]*20,298-centroids[1][k]*20,3,0,2.0*Math.PI);
+				    gS2.closePath;
+				    gS2.fill();
+				    gS2.fillText("("+centroids[0][k]+" , "+centroids[1][k]+" , "+centroids[2][0]+" , "+centroids[3][k]+")",120,360+k*15);
+				  }
+				}
+				total_distance = round_1(total_distance);
+				//
+				gS2.font = "12px Arial";
+				gS2.fillStyle = "rgb(128,0,0)";
+				gS2.fillText("K-Means [iteration: "+m+"] ",200,15);
+				gS2.fillText("Distance= "+total_distance,100,40);
+				if (minimum < 1000000) {
+				  gS2.fillText("Minimum = "+minimum,100,55);
+				}
+				gS2.fillText("",100,55);
+				gS2.font = "bold 12px Arial";
+				gS2.fillText(""+x_label[0],130,330);
+				gS2.fillText(""+y_label[0],20,92);
+				//
+				gS2.fillText(""+x_label[index],360,330);
+				gS2.fillText(""+y_label[index],250,92);
+				//
+      } 
+      </script> 
+      <style type="text/css"> 
+            canvas { border: 0px solid black; } 
+      </style> 
+</head> 
+ 
+<body onload="doit1();">
+<form>
+<table border = "0" >
+  <tr>
+    <td colspan="1">
+      <canvas id="Kmeans1" width="490" height="400" bgcolor="white">No support for the HTML5 object!</canvas> 
+    </td>
+  </tr>
+ <tr>
+    <td bgcolor="#dfdfdf" align="center" width="500" valign="top">
+    <input type="button" value="View" onclick="doit1()">
+    <input type="button" value="Clusters" onclick="doSomething()">
+    <input type = "button" value = "Results" onclick = "results()">
+     </td>
+  </tr>
+</table>
+</form>
+</body> 
+</html>
