@@ -1,0 +1,234 @@
+<html>
+<head>
+<title>Decision Trees</title>
+<script>
+var k_count = 1;
+var j = 0;
+//
+var zz = ["level","lang","tweets","phd"];
+var yy = [
+{"level":"Senior","lang":"Java","tweets":"no","phd":"no","outcome":"False"},
+{"level":"Senior","lang":"Java","tweets":"no","phd":"yes","outcome": "False"},
+{"level":"Mid","lang":"Python","tweets":"no","phd":"no","outcome":"True"},
+{"level":"Junior","lang":"Python","tweets":"no","phd":"no", "outcome":"True"},
+{"level":"Junior","lang":"R","tweets":"yes","phd":"no","outcome":"True"},
+{"level":"Junior","lang":"R","tweets":"yes","phd":"yes", "outcome":"False"},
+{"level":"Mid","lang":"R","tweets":"yes","phd":"yes","outcome":"True"},
+{"level":"Senior","lang":"Python","tweets":"no","phd":"no","outcome":"False"},
+{"level":"Senior","lang":"R","tweets":"yes","phd":"no", "outcome":"True"},
+{"level":"Junior","lang":"Python","tweets":"yes","phd":"no", "outcome":"True"},
+{"level":"Senior","lang":"Python","tweets":"yes","phd":"yes","outcome":"True"},
+{"level":"Mid","lang":"Python","tweets":"no","phd":"yes", "outcome":"True"},
+{"level":"Mid","lang":"Java","tweets":"yes","phd":"no", "outcome":"True"},
+{"level":"Junior","lang":"Python","tweets":"no","phd":"yes","outcome":"False"}
+];
+//
+var inputs_main = yy;
+var main_count = inputs_main.length;
+var index = 0;
+var nn = zz.length;
+var m = 0;
+var levels_count = 0;
+//
+function round_it(pr,xx) {
+  var temp = Math.round(pr*Math.pow(10,xx))/Math.pow(10,xx);
+  return (temp);
+}
+//
+var count = 0
+var temp_array = [];
+//
+var level_array = new Array(0);
+var level_count = new Array(0);
+var level_entropy = new Array(0);
+var level_prob = new Array(0);
+var level_true = new Array(0);
+var level_false = new Array(0);
+var xx1 = new Array("");
+var xx2 = new Array("");
+var xx_entropy = new Array(0);
+
+//
+for (var i = 0; i < 20; i++) {
+  level_array[i] = new Array(0);
+  level_count[i] = new Array(0);
+  level_entropy[i] = new Array(0);
+  level_prob[i] = new Array(0);
+  level_true[i] = new Array(0);
+  level_false[i] = new Array(0);
+  xx1[i] = new Array("");
+  xx2[i] = new Array("");
+  xx_entropy[i] = new Array(0);
+
+}
+//
+
+// k = # of characteristics
+// i = # of observations / records
+// j = # of groups per characteristic
+//
+var levels = [0,0,0,0,0,0,0,0,0,0];
+var total_entropy = [0,0,0,0,0,0,0,0,0,0];
+//
+// key work here
+//
+function doit(inputs,nn) {
+  count = Math.round(nn)*1.0;
+  //
+  for (i=0;i<count;i++) {
+    temp_array[i] = "";
+  }   
+  //
+  for (k=0;k<zz.length;k++) {
+    levels[k] = 0;
+    total_entropy[k] = 0;
+    for(i=0;i<count;i++) {
+      temp_array[i] = inputs[i][zz[k]];
+    }
+    //
+    temp_array.sort();
+    k_count = 1;
+    j = 0;
+    //
+    for (i=0;i<count-1;i++) {
+      level_array[j][k] = temp_array[i];
+      level_count[j][k] = k_count;
+      if(temp_array[i] != temp_array[i+1]) {
+        level_count[j][k] = k_count;
+        level_array[j][k] = temp_array[i];
+        k_count = 1;
+        j = j+1;
+      }
+      if (temp_array[i] == temp_array[i+1]) {
+        k_count=k_count+1;
+      }
+    }
+    level_count[j][k] = level_count[j][k]+1;
+    levels[k] = j+1;
+    //
+    for (j=0;j<levels[k];j++) {
+      var rp  = level_count[j][k]/count;
+      level_prob[j][k] = round_it(rp,3);
+      level_true[j][k]=0;
+      level_false[j][k]=0;
+      for (i=0;i<count;i++) {
+        if (level_array[j][k] == inputs[i][zz[k]]) {
+          if (inputs[i].outcome == "True") {
+            level_true[j][k] = level_true[j][k] + 1;
+          }
+          if (inputs[i].outcome == "False") {
+            level_false[j][k] = level_false[j][k] + 1;
+          }
+        }
+      }
+      if (level_true[j][k] ==0 || level_false[j][k] == 0) {
+        level_entropy[j][k] = 0;
+      }
+      else {
+        level_entropy[j][k] =  level_prob[j][k]*((-level_true[j][k]/level_count[j][k])*(Math.log(level_true[j][k]/level_count[j][k])/Math.log(2.0))+ (-level_false[j][k]/level_count[j][k])*(Math.log(level_false[j][k]/level_count[j][k])/Math.log(2.0)));
+      }
+      level_entropy[j][k] = round_it(level_entropy[j][k],3);
+      total_entropy[k] = total_entropy[k] + level_entropy[j][k];
+    }
+    total_entropy[k] = round_it(total_entropy[k],3);
+  }  
+  //
+  // end of k -- # of characteristics
+  //
+  report();
+  entropy();
+}
+//
+// output here
+//
+function report() {
+  document.write("<html>");
+  document.write("<head><title>Decision Trees v5.0</title></head>");
+  document.write("<body>");
+  //
+  document.write("<table border =\"1\" cellspacing=\"0\" cellpadding=\"1\">");
+  document.write("<tr>");
+  document.write("<td width=\"250\" style=\"background: #dedede; font-weight: bold; color: maroon; text-align: center;\">Characteristic </td>");
+  document.write("<td style=\"background: #dedede; font-weight: bold; color: maroon; text-align: center;\">Frequency</td>");
+  document.write("<td style=\"background: #dedede; font-weight: bold; color: maroon; text-align: center;\">True count</td>");
+  document.write("<td style=\"background: #dedede; font-weight: bold; color: maroon; text-align: center;\">False count</td>");
+  document.write("<td style=\"background: #dedede; font-weight: bold; color: maroon; text-align: center;\">Entropy</td>");
+  document.write("</tr>");
+  //
+  for (k=0;k<zz.length;k++) {
+    for (j=0;j<levels[k];j++) {
+      document.write("<tr>");
+      document.write("<td style=\"font-weight: bold; color: black; text-align: left;\">"+zz[k]+" : "+level_array[j][k]+"</td>");
+      document.write("<td style=\"text-align: right;\">"+level_prob[j][k]+"</td>");
+      document.write("<td style=\"text-align: center;\">"+level_true[j][k]+"</td>");
+      document.write("<td style=\"text-align: center;\">"+level_false[j][k]+"</td>");
+      document.write("<td style=\"text-align: right;\">"+level_entropy[j][k]+"</td>");
+      document.write("</tr>");
+    }
+    document.write("<tr>");
+    document.write("<td style=\"background: #efefef; font-weight: bold; color: black; text-align: right;\" colspan=\"5\">Total Entropy: "+total_entropy[k]+"</td>");
+    document.write("</tr>");
+  }
+  //
+  document.write("</table>");
+  document.write("</body>");
+  document.write("</html>");
+}
+//
+// end of report
+//
+// new work here (08/22/2017)
+//
+function entropy(){
+  var min_entropy = 1000000;
+  for (k=0;k<zz.length;k++) {
+    if (total_entropy[k] < min_entropy) {
+       min_entropy = total_entropy[k];
+       index = k;
+    }
+  }
+  //
+  document.write("Characteristic: "+zz[index]+"<br/> Minimum entropy: "+min_entropy+"<br/>");
+  //
+  // this is OK -- copy values before they are overwritten
+  //
+  for (j=0;j<levels[index];j++) {
+     xx2[j][index] = level_array[j][index];
+     xx_entropy[j][index] = level_entropy[j][index];
+  }
+  levels_count = levels[index];
+  //
+  for (j = 0;j<levels[index];j++) {
+    if (xx_entropy[j][index] == 0) {
+       document.write("   Final Child: "+zz[index]+" = "+xx2[j][index]+"<br/>");
+    }
+    else {
+      document.write("   Branch: "+zz[index]+" = "+xx2[j][index]+", "+xx_entropy[j][index]+"<br/>");
+    }
+  }
+}
+//
+// end of function
+//
+doit(yy,yy.length);
+//
+// branches
+//
+for (m=0;m<levels_count;m++) {
+  new_count = -1;
+  // if (xx_entropy[m][index] != 0) {
+     for (i=0;i<main_count;i++) {
+        if (inputs_main[i][zz[index]] == xx2[m][index]) {
+          new_count = new_count + 1;
+          xx1[new_count] = inputs_main[i];
+        }
+      }
+      doit(xx1,new_count+1);
+  // }  
+}
+</script>
+</head>
+<body>
+&nbsp;
+</body>
+</html>
